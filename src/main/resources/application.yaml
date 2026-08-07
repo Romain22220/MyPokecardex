@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: MyPokecardex
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mypokecardex?serverTimezone=Europe/Paris
+    username: root
+    password: blackops21
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+
+server:
+  port: 8080

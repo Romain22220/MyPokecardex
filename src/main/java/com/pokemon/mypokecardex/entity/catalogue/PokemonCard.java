@@ -1,4 +1,4 @@
-package com.pokemon.mypokecardex.entity;
+package com.pokemon.mypokecardex.entity.catalogue;
 
 import jakarta.persistence.*;
 import lombok.*;

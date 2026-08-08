@@ -22,7 +22,7 @@ public class TcgDexSetResponseDto {
 
     private Serie serie;
 
-    private List<TcgDexCardBriefResponseDto> cards;
+    private List<TcgDexCardResponseDto> cards;
 
     @Getter
     @Setter

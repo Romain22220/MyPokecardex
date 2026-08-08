@@ -1,5 +1,6 @@
 package com.pokemon.mypokecardex.client;
 
+import com.pokemon.mypokecardex.dto.external.TcgDexCardResponseDto;
 import com.pokemon.mypokecardex.dto.external.TcgDexSerieResponseDto;
 import com.pokemon.mypokecardex.dto.external.TcgDexSetResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,13 @@ public class TcgDexClient {
                 .uri("/{language}/sets/{setId}", language, setId)
                 .retrieve()
                 .body(TcgDexSetResponseDto.class);
+    }
+
+    public TcgDexCardResponseDto getCard(String cardId) {
+
+        return tcgDexRestClient.get()
+                .uri("/{language}/cards/{cardId}", language, cardId)
+                .retrieve()
+                .body(TcgDexCardResponseDto.class);
     }
 }

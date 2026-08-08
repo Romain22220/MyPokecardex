@@ -2,6 +2,7 @@ package com.pokemon.mypokecardex.service;
 
 import com.pokemon.mypokecardex.dto.PokemonSetDto;
 import com.pokemon.mypokecardex.entity.catalogue.PokemonSet;
+import com.pokemon.mypokecardex.exception.ResourceNotFoundException;
 import com.pokemon.mypokecardex.mapper.PokemonSetMapper;
 import com.pokemon.mypokecardex.repository.catalogue.PokemonSetRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class PokemonSetService {
     public PokemonSetDto findById(Long id) {
         PokemonSet pokemonSet = pokemonSetRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Set Pokémon introuvable : " + id)
+                        new ResourceNotFoundException("Set Pokémon introuvable : " + id)
                 );
 
         return pokemonSetMapper.toDto(pokemonSet);

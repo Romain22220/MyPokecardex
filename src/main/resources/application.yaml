@@ -22,3 +22,8 @@ spring:
 
 server:
   port: 8084
+
+tcgdex:
+  api:
+   url: https://api.tcgdex.net/v2
+   language: fr

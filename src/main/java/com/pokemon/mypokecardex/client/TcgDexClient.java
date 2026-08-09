@@ -44,15 +44,35 @@ public class TcgDexClient {
     public TcgDexSetResponseDto getSet(String setId) {
 
         return tcgDexRestClient.get()
-                .uri("/{language}/sets/{setId}", language, setId)
+                .uri(
+                        "/{language}/sets/{setId}",
+                        language,
+                        setId
+                )
                 .retrieve()
                 .body(TcgDexSetResponseDto.class);
     }
 
-    public TcgDexCardResponseDto getCard(String cardId) {
+    public TcgDexCardResponseDto getCard(
+            String setId,
+            String localId
+    ) {
 
         return tcgDexRestClient.get()
-                .uri("/{language}/cards/{cardId}", language, cardId)
+                .uri(
+                        "/{language}/sets/{setId}/{localId}",
+                        language,
+                        setId,
+                        localId
+                )
+                .retrieve()
+                .body(TcgDexCardResponseDto.class);
+    }
+
+    public TcgDexCardResponseDto getCardFromSet(String setId, String localCardId) {
+
+        return tcgDexRestClient.get()
+                .uri("/{language}/sets/{setId}/{localCardId}", language, setId, localCardId)
                 .retrieve()
                 .body(TcgDexCardResponseDto.class);
     }

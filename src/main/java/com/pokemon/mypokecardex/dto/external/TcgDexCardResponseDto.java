@@ -1,54 +1,44 @@
 package com.pokemon.mypokecardex.dto.external;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class TcgDexCardResponseDto {
+
+    private String category;
+
     private String id;
+
+    private String illustrator;
+
+    private String image;
 
     private String localId;
 
     private String name;
 
-    private String image;
-
-    private String category;
-
     private String rarity;
-
-    private String illustrator;
-
-    private String description;
 
     private TcgDexSetReferenceDto set;
 
     private TcgDexVariantsDto variants;
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class TcgDexSetReferenceDto {
+    @JsonProperty("variants_detailed")
+    private List<TcgDexVariantDetailedDto> variantsDetailed;
 
-        private String id;
+    private String effect;
 
-        private String name;
-    }
+    private String trainerType;
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class TcgDexVariantsDto {
+    private String regulationMark;
 
-        private Boolean firstEdition;
+    private TcgDexLegalDto legal;
 
-        private Boolean holo;
+    private String updated;
 
-        private Boolean normal;
-
-        private Boolean reverse;
-
-        private Boolean wPromo;
-    }
+    private TcgDexPricingDto pricing;
 }

@@ -9,13 +9,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TcgDexSetBriefResponseDto {
+public class TcgDexVariantDetailedDto {
+    private String type;
 
-    private String id;
+    private String size;
 
-    private String localId;
+    private String variantId;
 
-    private String name;
+    private TcgDexPricingDto pricing;
 
-    private String image;
 }

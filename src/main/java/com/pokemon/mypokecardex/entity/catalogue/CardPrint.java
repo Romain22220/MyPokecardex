@@ -11,17 +11,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardPrint {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false)
     private String collectorNumber;
 
-
     private String imageUrl;
 
+    @Column(unique = true)
+    private Long cardmarketProductId;
+
+    private String tcgDexVariantId;
+
+    private String variantSize;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -30,11 +35,9 @@ public class CardPrint {
     )
     private PokemonCard pokemonCard;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rarity_id")
     private Rarity rarity;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "variant_type_id")

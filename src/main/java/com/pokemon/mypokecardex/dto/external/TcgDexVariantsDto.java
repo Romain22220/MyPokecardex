@@ -9,13 +9,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TcgDexSetBriefResponseDto {
+public class TcgDexVariantsDto {
 
-    private String id;
+    private Boolean firstEdition;
 
-    private String localId;
+    private Boolean holo;
 
-    private String name;
+    private Boolean normal;
 
-    private String image;
+    private Boolean reverse;
+
+    private Boolean wPromo;
 }

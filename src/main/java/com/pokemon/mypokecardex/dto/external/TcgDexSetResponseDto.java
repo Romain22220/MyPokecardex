@@ -8,45 +8,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TcgDexSetResponseDto {
+
     private String id;
-
     private String name;
-
     private String logo;
-
     private String symbol;
-
     private String releaseDate;
+    private CardCountDto cardCount;
+    private TcgDexSerieReferenceDto serie;
+    private List<TcgDexCardBriefResponseDto> cards;
 
-    private CardCount cardCount;
-
-    private Serie serie;
-
-    private List<TcgDexCardResponseDto> cards;
-
-    @Getter
-    @Setter
+    @Data
     @NoArgsConstructor
-    public static class CardCount {
-
-        private Integer total;
-
+    public static class CardCountDto {
         private Integer official;
-
-        private Integer reverse;
-
-        private Integer holo;
-
-        private Integer firstEd;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Serie {
-
-        private String id;
-
-        private String name;
+        private Integer total;
     }
 }

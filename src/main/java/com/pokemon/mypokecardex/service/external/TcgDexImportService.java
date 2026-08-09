@@ -13,166 +13,205 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
+
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TcgDexImportService {
 
-    private static final String POKEMON_TCG_POCKET_SERIES_ID = "tcgp";
     private final TcgDexClient tcgDexClient;
-    private final TcgDexSetMapper tcgDexSetMapper;
+
     private final PokemonSetRepository pokemonSetRepository;
+
+    private final TcgDexSetMapper tcgDexSetMapper;
 
     @Transactional
     public int importPhysicalSets() {
-        log.info("=== Début de l'import des sets Pokémon TCG ===");
-        List<TcgDexSerieResponseDto> series = tcgDexClient.getSeries();
 
-        log.info("{} séries récupérées depuis TCGdex", series.size());
+        log.info("========================================");
+        log.info("Début import des sets Pokémon");
+        log.info("========================================");
 
-        int imported = 0;
-        int processedSets = 0;
-        int totalSets = 0;
+        var series =
+                tcgDexClient.getSeries();
 
-        for (TcgDexSerieResponseDto serie : series) {
+        if (series == null || series.isEmpty()) {
 
-            if (!isPhysicalTcgSerie(serie)) {
-                log.debug(
-                        "Série ignorée : {} ({})",
-                        serie != null ? serie.getName() : "inconnue",
-                        serie != null ? serie.getId() : "null"
-                );
-                continue;
-            }
+            log.warn("Aucune série trouvée");
 
-            TcgDexSerieResponseDto detailedSerie = tcgDexClient.getSerie(serie.getId());
-
-            if (detailedSerie == null ||
-                    detailedSerie.getSets() == null) {
-                log.warn(
-                        "Impossible de récupérer les sets de la série {}",
-                        serie.getId()
-                );
-                continue;
-            }
-
-            totalSets += detailedSerie.getSets().size();
+            return 0;
         }
 
-        log.info("{} sets physiques à traiter", totalSets);
+        int seriesProcessed = 0;
+        int setsImported = 0;
+        int setsUpdated = 0;
 
         for (TcgDexSerieResponseDto serie : series) {
 
-            if (!isPhysicalTcgSerie(serie)) {
+            if (serie == null ||
+                    serie.getId() == null) {
                 continue;
             }
 
-            log.info(
-                    "Traitement de la série : {} ({})",
-                    serie.getName(),
+            /*
+             * tcgp = Pokémon TCG Pocket.
+             *
+             * On ne veut pas importer les cartes du jeu
+             * mobile dans notre collection physique.
+             */
+            if ("tcgp".equalsIgnoreCase(
                     serie.getId()
-            );
-
-            TcgDexSerieResponseDto detailedSerie = tcgDexClient.getSerie(serie.getId());
-
-            if (detailedSerie == null ||
-                    detailedSerie.getSets() == null) {
-                continue;
-            }
-
-            for (TcgDexSetBriefResponseDto set : detailedSerie.getSets()) {
-                processedSets++;
+            )) {
 
                 log.info(
-                        "[{}/{}] Import du set : {} ({})",
-                        processedSets,
-                        totalSets,
-                        set.getName(),
-                        set.getId()
+                        "Série ignorée : {} - {}",
+                        serie.getId(),
+                        serie.getName()
                 );
+
+                continue;
+            }
+
+            seriesProcessed++;
+
+            log.info(
+                    "Traitement série : {} - {}",
+                    serie.getId(),
+                    serie.getName()
+            );
+
+            TcgDexSerieResponseDto serieDetails =
+                    tcgDexClient.getSerie(
+                            serie.getId()
+                    );
+
+            if (serieDetails == null ||
+                    serieDetails.getSets() == null) {
+
+                log.warn(
+                        "Aucun set pour la série {}",
+                        serie.getId()
+                );
+
+                continue;
+            }
+
+            for (TcgDexSetBriefResponseDto setBrief :
+                    serieDetails.getSets()) {
+
+                if (setBrief == null ||
+                        setBrief.getId() == null) {
+                    continue;
+                }
 
                 try {
 
-                    TcgDexSetResponseDto detailedSet = tcgDexClient.getSet(set.getId());
+                    TcgDexSetResponseDto set =
+                            tcgDexClient.getSet(
+                                    setBrief.getId()
+                            );
 
-                    if (detailedSet == null) {
-                        log.warn("Set {} introuvable sur TCGdex", set.getId());
+                    if (set == null) {
+
+                        log.warn(
+                                "Set introuvable : {}",
+                                setBrief.getId()
+                        );
+
                         continue;
                     }
 
-                    int result = importOrUpdateSet(detailedSet);
-                    imported += result;
+                    boolean created =
+                            importOrUpdateSet(
+                                    set,
+                                    serie
+                            );
 
-                    log.info(
-                            "Set {} terminé ({})",
-                            set.getId(),
-                            result == 1
-                                    ? "nouveau"
-                                    : "déjà présent / mis à jour"
-                    );
+                    if (created) {
+                        setsImported++;
+                    } else {
+                        setsUpdated++;
+                    }
 
-                } catch (Exception exception) {
+                } catch (Exception e) {
 
                     log.error(
-                            "Erreur lors de l'import du set {} ({})",
-                            set.getId(),
-                            set.getName(),
-                            exception
+                            "Erreur lors de l'import du set {}",
+                            setBrief.getId(),
+                            e
                     );
                 }
             }
         }
 
-        log.info(
-                "=== Import des sets terminé : {} nouveaux sets sur {} ===",
-                imported,
-                processedSets
-        );
-
-        return imported;
+        log.info("========================================");
+        log.info("Import des sets terminé");
+        log.info("Séries traitées : {}", seriesProcessed);
+        log.info("Sets créés      : {}", setsImported);
+        log.info("Sets mis à jour : {}", setsUpdated);
+        log.info("========================================");
+        return seriesProcessed;
     }
 
-    private boolean isPhysicalTcgSerie(TcgDexSerieResponseDto serie) {
-
-        if (serie == null || serie.getId() == null) {
-            return false;
-        }
-
-        return !POKEMON_TCG_POCKET_SERIES_ID.equalsIgnoreCase(serie.getId());
-    }
-
-    private int importOrUpdateSet(TcgDexSetResponseDto externalSet) {
+    private boolean importOrUpdateSet(
+            TcgDexSetResponseDto source,
+            TcgDexSerieResponseDto serie
+    ) {
 
         PokemonSet pokemonSet =
                 pokemonSetRepository
-                        .findByApiId(externalSet.getId())
+                        .findByApiId(source.getId())
                         .orElse(null);
 
-        if (pokemonSet == null) {
-            pokemonSet = tcgDexSetMapper.toEntity(externalSet);
-            pokemonSetRepository.save(pokemonSet);
-            return 1;
+        boolean created =
+                pokemonSet == null;
+
+        if (created) {
+
+            pokemonSet =
+                    tcgDexSetMapper.toEntity(
+                            source
+                    );
+
+        } else {
+
+            /*
+             * On met à jour les informations du set.
+             */
+            pokemonSet.setName(
+                    source.getName()
+            );
+
+            pokemonSet.setLogoUrl(
+                    source.getLogo()
+            );
+
+
+            pokemonSet.setReleaseDate(
+                    LocalDate.parse(source.getReleaseDate())
+            );
         }
 
-        updateSet(pokemonSet, externalSet);
-        pokemonSetRepository.save(pokemonSet);
+        /*
+         * Si ton entité PokemonSet possède une relation
+         * vers une entité Serie, on la remplira ici.
+         *
+         * Si tu n'as pas de relation Serie dans ton entité,
+         * cette partie n'est pas nécessaire.
+         */
 
-        return 0;
-    }
+        pokemonSetRepository.save(
+                pokemonSet
+        );
 
-    private void updateSet(PokemonSet pokemonSet, TcgDexSetResponseDto externalSet) {
+        log.info(
+                "{} set : {} - {}",
+                created ? "Créé" : "Mis à jour",
+                source.getId(),
+                source.getName()
+        );
 
-        pokemonSet.setName(externalSet.getName());
-        pokemonSet.setLogoUrl(externalSet.getLogo());
-
-        if (externalSet.getReleaseDate() != null) {
-            pokemonSet.setReleaseDate(LocalDate.parse(externalSet.getReleaseDate()));
-        }
-
-        if (externalSet.getSerie() != null) {
-            pokemonSet.setSeries(externalSet.getSerie().getName());
-        }
+        return created;
     }
 }

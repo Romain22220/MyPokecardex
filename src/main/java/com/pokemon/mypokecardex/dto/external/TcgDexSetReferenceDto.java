@@ -9,13 +9,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TcgDexSetBriefResponseDto {
-
+public class TcgDexSetReferenceDto {
     private String id;
-
-    private String localId;
 
     private String name;
 
-    private String image;
+    private String logo;
+
+    private String symbol;
+
+    private TcgDexSetResponseDto.CardCountDto cardCount;
 }
